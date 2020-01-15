@@ -18,4 +18,6 @@
         </activity>
     </application>
 
+    <!-- put this after the starting <manifest> tag and before the starting <application> tag -->
+    <uses-permission android:name="android.permission.INTERNET" />
 </manifest>
