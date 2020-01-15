@@ -7,26 +7,17 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.ListView;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nagesagi.groupchat.Message.Message;
 import com.nagesagi.groupchat.Message.MessageAdapter;
-import com.scaledrone.lib.Listener;
-import com.scaledrone.lib.Member;
-import com.scaledrone.lib.Room;
-import com.scaledrone.lib.RoomListener;
-import com.scaledrone.lib.Scaledrone;
+import com.nagesagi.groupchat.MessageHandler.MessageProcessor;
+import com.nagesagi.groupchat.MessageHandler.ScaledroneHandler;
 
 import java.util.Random;
 
-public class MainActivity extends AppCompatActivity implements RoomListener {
+public class MainActivity extends AppCompatActivity implements MessageProcessor {
 
-    // replace this with a real channelID from Scaledrone dashboard
-    private String channelID = "cwW2E5EpnsW1lNCJ";
-    private String roomName = "observable-room";
     private EditText editText;
-    private Scaledrone scaledrone;
+    private ScaledroneHandler handler;
     private MessageAdapter messageAdapter;
     private ListView messagesView;
 
@@ -35,74 +26,32 @@ public class MainActivity extends AppCompatActivity implements RoomListener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        editText = (EditText) findViewById(R.id.editText);
+        editText = findViewById(R.id.editText);
 
         messageAdapter = new MessageAdapter(this);
-        messagesView = (ListView) findViewById(R.id.messages_view);
+        messagesView = findViewById(R.id.messages_view);
         messagesView.setAdapter(messageAdapter);
 
         MemberData data = new MemberData(getRandomName(), getRandomColor());
-
-        scaledrone = new Scaledrone(channelID, data);
-        scaledrone.connect(new Listener() {
-            @Override
-            public void onOpen() {
-                System.out.println("Scaledrone connection open");
-                scaledrone.subscribe(roomName, MainActivity.this);
-            }
-
-            @Override
-            public void onOpenFailure(Exception ex) {
-                System.err.println(ex);
-            }
-
-            @Override
-            public void onFailure(Exception ex) {
-                System.err.println(ex);
-            }
-
-            @Override
-            public void onClosed(String reason) {
-                System.err.println(reason);
-            }
-        });
+        handler = new ScaledroneHandler(data, this);
     }
 
     public void sendMessage(View view) {
         String message = editText.getText().toString();
         if (message.length() > 0) {
-            scaledrone.publish(roomName, message);
+            handler.sendMessage(message);
             editText.getText().clear();
         }
     }
 
-    @Override
-    public void onOpen(Room room) {
-        System.out.println("Conneted to room");
-    }
-
-    @Override
-    public void onOpenFailure(Room room, Exception ex) {
-        System.err.println(ex);
-    }
-
-    @Override
-    public void onMessage(Room room, com.scaledrone.lib.Message receivedMessage) {
-        final ObjectMapper mapper = new ObjectMapper();
-        try {
-            final MemberData data = mapper.treeToValue(receivedMessage.getMember().getClientData(), MemberData.class);
-            boolean belongsToCurrentUser = receivedMessage.getClientID().equals(scaledrone.getClientID());
-            final Message message = new Message(receivedMessage.getData().asText(), data, belongsToCurrentUser);
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    messageAdapter.add(message);
-                    messagesView.setSelection(messagesView.getCount() - 1);
-                }
-            });
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
+    public void processMessage(final Message message){
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                messageAdapter.add(message);
+                messagesView.setSelection(messagesView.getCount() - 1);
+            }
+        });
     }
 
     private String getRandomName() {
