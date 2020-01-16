@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nagesagi.groupchat.MainActivity;
 import com.nagesagi.groupchat.MemberData;
 import com.nagesagi.groupchat.Message.Message;
+import com.nagesagi.groupchat.Randomizer;
 import com.scaledrone.lib.Listener;
 import com.scaledrone.lib.Room;
 import com.scaledrone.lib.RoomListener;
@@ -47,15 +48,13 @@ public class ScaledroneHandler implements RoomListener {
         });
     }
 
-
     public void sendMessage(String message){
         scaledrone.publish(roomName, message);
     }
 
-
     @Override
     public void onOpen(Room room) {
-        System.out.println("Conneted to room");
+        System.out.println("Connected to room");
     }
 
     @Override
@@ -65,13 +64,27 @@ public class ScaledroneHandler implements RoomListener {
 
     @Override
     public void onMessage(Room room, com.scaledrone.lib.Message receivedMessage) {
-        final ObjectMapper mapper = new ObjectMapper();
-        try {
-            final MemberData data = mapper.treeToValue(receivedMessage.getMember().getClientData(), MemberData.class);
-            boolean belongsToCurrentUser = receivedMessage.getClientID().equals(scaledrone.getClientID());
-            final Message message = new Message(receivedMessage.getData().asText(), data, belongsToCurrentUser);
+                try {
+
+            MemberData data = new MemberData(Randomizer.getRandomName(), Randomizer.getRandomColor());
+            if(receivedMessage.getMember() != null) {
+                final ObjectMapper mapper = new ObjectMapper();
+                data = mapper.treeToValue(receivedMessage.getMember().getClientData(), MemberData.class);
+            }
+
+            boolean belongsToCurrentUser = false;
+            if(receivedMessage.getClientID() != null)
+                belongsToCurrentUser = receivedMessage.getClientID().equals(scaledrone.getClientID());
+
+            String text = "Didn't work";
+            if(receivedMessage.getData() != null)
+                text = receivedMessage.getData().asText();
+
+            final Message message = new Message(text, data, belongsToCurrentUser);
             processor.processMessage(message);
         } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }catch (Exception e) {
             e.printStackTrace();
         }
     }
