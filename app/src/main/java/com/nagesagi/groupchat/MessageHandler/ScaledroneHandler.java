@@ -10,7 +10,10 @@ import com.scaledrone.lib.Room;
 import com.scaledrone.lib.RoomListener;
 import com.scaledrone.lib.Scaledrone;
 
-public class ScaledroneHandler implements RoomListener, MessageServerHandler {
+/**
+ * Communicates with the Scaledrone server
+ */
+public class ScaledroneHandler implements RoomListener, MessageServer {
 
     private Scaledrone scaledrone;
     private String roomName;
@@ -20,6 +23,12 @@ public class ScaledroneHandler implements RoomListener, MessageServerHandler {
 
     private MessageProcessor processor;
 
+    /**
+     * Creates the ScaledroneHandler
+     * @param data
+     * @param room
+     * @param processor
+     */
     public ScaledroneHandler(MemberData data, String room, MessageProcessor processor){
         this.processor = processor;
         scaledrone = new Scaledrone(channelID, data);
