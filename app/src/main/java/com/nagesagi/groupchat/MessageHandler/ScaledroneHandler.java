@@ -2,7 +2,6 @@ package com.nagesagi.groupchat.MessageHandler;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nagesagi.groupchat.MainActivity;
 import com.nagesagi.groupchat.MemberData;
 import com.nagesagi.groupchat.Message.Message;
 import com.nagesagi.groupchat.Randomizer;
@@ -11,18 +10,20 @@ import com.scaledrone.lib.Room;
 import com.scaledrone.lib.RoomListener;
 import com.scaledrone.lib.Scaledrone;
 
-public class ScaledroneHandler implements RoomListener {
+public class ScaledroneHandler implements RoomListener, MessageServerHandler {
 
     private Scaledrone scaledrone;
+    private String roomName;
 
     // replace this with a real channelID from Scaledrone dashboard
     private String channelID = "cwW2E5EpnsW1lNCJ";
-    private String roomName = "observable-room";
+
     private MessageProcessor processor;
 
-    public ScaledroneHandler(MemberData data, MessageProcessor processor){
+    public ScaledroneHandler(MemberData data, String room, MessageProcessor processor){
         this.processor = processor;
         scaledrone = new Scaledrone(channelID, data);
+        roomName = room;
 
         scaledrone.connect(new Listener() {
             @Override
@@ -48,6 +49,9 @@ public class ScaledroneHandler implements RoomListener {
         });
     }
 
+    public void registerOnMessageRecieved(MessageProcessor processor){
+        this.processor = processor;
+    }
     public void sendMessage(String message){
         scaledrone.publish(roomName, message);
     }

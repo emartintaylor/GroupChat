@@ -10,16 +10,18 @@ import android.widget.ListView;
 import com.nagesagi.groupchat.Message.Message;
 import com.nagesagi.groupchat.Message.MessageAdapter;
 import com.nagesagi.groupchat.MessageHandler.MessageProcessor;
-import com.nagesagi.groupchat.MessageHandler.ScaledroneHandler;
+import com.nagesagi.groupchat.MessageHandler.MessageServerHandler;
+import com.nagesagi.groupchat.MessageHandler.MessageServerHandlerFactory;
 
 import java.util.Random;
 
 public class MainActivity extends AppCompatActivity implements MessageProcessor {
 
     private EditText editText;
-    private ScaledroneHandler handler;
+    private MessageServerHandler handler;
     private MessageAdapter messageAdapter;
     private ListView messagesView;
+    private String roomName = "testchat";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,7 +35,7 @@ public class MainActivity extends AppCompatActivity implements MessageProcessor 
         messagesView.setAdapter(messageAdapter);
 
         MemberData data = new MemberData(Randomizer.getRandomName(), Randomizer.getRandomColor());
-        handler = new ScaledroneHandler(data, this);
+        handler = MessageServerHandlerFactory.GetHandler(roomName, data, this);
     }
 
     public void sendMessage(View view) {
